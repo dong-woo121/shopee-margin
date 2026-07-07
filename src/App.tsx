@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { CountryCode, CalcMode } from './types';
 import { useSettings } from './hooks/useSettings';
+import { useExchangeRates } from './hooks/useExchangeRates';
 import CountryTabs from './components/CountryTabs';
 import ModeToggle from './components/ModeToggle';
 import Calculator from './components/Calculator';
@@ -11,6 +12,17 @@ export default function App() {
   const [mode, setMode] = useState<CalcMode>('predict');
   const [showSettings, setShowSettings] = useState(false);
   const { settings, setExchangeRate, setFeeRate, setVatRate, reset } = useSettings();
+  const { fetchRates } = useExchangeRates();
+
+  useEffect(() => {
+    fetchRates().then(rates => {
+      if (rates) {
+        (Object.entries(rates) as [CountryCode, number][]).forEach(([code, rate]) => {
+          setExchangeRate(code, rate);
+        });
+      }
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
