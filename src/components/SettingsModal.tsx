@@ -106,9 +106,9 @@ export default function SettingsModal({
             ))}
           </section>
 
-          {/* 부가세 기본값 */}
+          {/* 부가세 환급률 기본값 */}
           <section>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">부가세율 기본값 (%)</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">부가세 환급률 기본값 (%)</h3>
             <div className="flex items-center gap-2">
               <input
                 type="text"

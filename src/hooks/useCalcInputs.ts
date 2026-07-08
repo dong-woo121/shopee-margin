@@ -7,7 +7,7 @@ const DEFAULT_INPUTS: CalcInputs = {
   costRate: '70',
   vatRate: '10',
   feeRate: '12',
-  settlementKRW: '',
+  settlementLocal: '',
 };
 
 export function useCalcInputs(country: CountryCode) {

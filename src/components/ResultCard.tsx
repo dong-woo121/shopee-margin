@@ -30,7 +30,7 @@ export default function ResultCard({ mode, result, ready }: Props) {
 
   const margin = mode === 'predict' ? result.predictedMargin : result.actualMargin;
   const marginRate = mode === 'predict' ? result.predictedMarginRate : result.actualMarginRate;
-  const settlement = mode === 'predict' ? result.predictedSettlement : null;
+  const settlement = mode === 'predict' ? result.predictedSettlement : result.actualSettlementKRW;
   const isPositive = margin >= 0;
 
   return (
@@ -38,13 +38,13 @@ export default function ResultCard({ mode, result, ready }: Props) {
       <div className="px-4 pt-4 pb-2 border-b border-gray-100">
         <Row label="판매금액 (KRW)" value={krw(result.salePriceKRW)} />
         <Row label="매입원가" value={krw(result.costPrice)} />
-        <Row label="└ 부가세" value={krw(result.vatAmount)} />
-        <Row label="총원가" value={krw(result.totalCost)} />
+        <Row label="└ 부가세환급" value={`-${krw(result.vatRefund)}`} />
+        <Row label="실효원가" value={krw(result.totalCost)} />
         {mode === 'predict' && (
           <Row label="수수료" value={krw(result.feeAmount)} />
         )}
         {settlement !== null && (
-          <Row label="예상 정산금액" value={krw(settlement)} />
+          <Row label={mode === 'predict' ? '예상 정산금액' : '실제 정산금액'} value={krw(settlement)} />
         )}
       </div>
 

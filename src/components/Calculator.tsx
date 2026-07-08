@@ -28,15 +28,16 @@ export default function Calculator({ country, mode, settings }: Props) {
       costRate:      p(inputs.costRate),
       vatRate:       p(inputs.vatRate),
       feeRate:       p(inputs.feeRate),
-      settlementKRW: p(inputs.settlementKRW),
+      settlementLocal: p(inputs.settlementLocal),
     });
   }, [inputs, exchangeRate]);
 
   const costPrice = p(inputs.refPrice) * (p(inputs.costRate) / 100);
-  const totalCost = costPrice * (1 + p(inputs.vatRate) / 100);
+  const vatRefund = costPrice * (p(inputs.vatRate) / 100);
+  const totalCost = costPrice - vatRefund;
 
   const ready = p(inputs.salePrice) > 0 && p(inputs.refPrice) > 0 && p(inputs.costRate) > 0;
-  const settleReady = ready && (mode === 'predict' || p(inputs.settlementKRW) > 0);
+  const settleReady = ready && (mode === 'predict' || p(inputs.settlementLocal) > 0);
 
   return (
     <div className="flex flex-col gap-0">
@@ -73,11 +74,11 @@ export default function Calculator({ country, mode, settings }: Props) {
           hint={costPrice > 0 ? krw(costPrice) : undefined}
         />
         <NumberInput
-          label="부가세"
+          label="부가세환급률"
           value={inputs.vatRate}
           onChange={set('vatRate')}
           suffix="%"
-          hint={totalCost > 0 ? `총원가 ${krw(totalCost)}` : undefined}
+          hint={vatRefund > 0 ? `환급 -${krw(vatRefund)} → 실원가 ${krw(totalCost)}` : undefined}
         />
 
         {mode === 'predict' ? (
@@ -89,11 +90,12 @@ export default function Calculator({ country, mode, settings }: Props) {
           />
         ) : (
           <NumberInput
-            label="실제 정산금액"
-            value={inputs.settlementKRW}
-            onChange={set('settlementKRW')}
-            suffix="원"
+            label={`정산금액 (${config.symbol})`}
+            value={inputs.settlementLocal}
+            onChange={set('settlementLocal')}
+            suffix={config.currency}
             placeholder="쇼피 정산 금액"
+            hint={p(inputs.settlementLocal) > 0 ? `≈ ${krw(p(inputs.settlementLocal) * exchangeRate)}` : undefined}
           />
         )}
       </div>

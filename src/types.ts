@@ -23,18 +23,19 @@ export interface CalcInputs {
   costRate: string;
   vatRate: string;
   feeRate: string;
-  settlementKRW: string;
+  settlementLocal: string;
 }
 
 export interface CalcResult {
   salePriceKRW: number;
   costPrice: number;
-  vatAmount: number;
+  vatRefund: number;
   totalCost: number;
   feeAmount: number;
   predictedSettlement: number;
   predictedMargin: number;
   predictedMarginRate: number;
+  actualSettlementKRW: number;
   actualMargin: number;
   actualMarginRate: number;
 }
