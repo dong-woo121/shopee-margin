@@ -13,7 +13,8 @@ export function useSettings() {
         return {
           exchangeRates: { ...DEFAULT_SETTINGS.exchangeRates, ...parsed.exchangeRates },
           feeRates:      { ...DEFAULT_SETTINGS.feeRates,      ...parsed.feeRates      },
-          vatRate:       parsed.vatRate ?? DEFAULT_SETTINGS.vatRate,
+          vatRate:       parsed.vatRate  ?? DEFAULT_SETTINGS.vatRate,
+          costRate:      parsed.costRate ?? DEFAULT_SETTINGS.costRate,
         };
       }
     } catch {}
@@ -33,7 +34,10 @@ export function useSettings() {
   const setVatRate = (rate: number) =>
     setSettings(s => ({ ...s, vatRate: rate }));
 
+  const setCostRate = (rate: number) =>
+    setSettings(s => ({ ...s, costRate: rate }));
+
   const reset = () => setSettings(DEFAULT_SETTINGS);
 
-  return { settings, setExchangeRate, setFeeRate, setVatRate, reset };
+  return { settings, setExchangeRate, setFeeRate, setVatRate, setCostRate, reset };
 }

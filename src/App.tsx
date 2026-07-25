@@ -4,14 +4,14 @@ import { useSettings } from './hooks/useSettings';
 import { useExchangeRates } from './hooks/useExchangeRates';
 import CountryTabs from './components/CountryTabs';
 import ModeToggle from './components/ModeToggle';
-import Calculator from './components/Calculator';
+import OrderCalculator from './components/OrderCalculator';
 import SettingsModal from './components/SettingsModal';
 
 export default function App() {
   const [country, setCountry] = useState<CountryCode>('SG');
   const [mode, setMode] = useState<CalcMode>('predict');
   const [showSettings, setShowSettings] = useState(false);
-  const { settings, setExchangeRate, setFeeRate, setVatRate, reset } = useSettings();
+  const { settings, setExchangeRate, setFeeRate, setVatRate, setCostRate, reset } = useSettings();
   const { fetchRates } = useExchangeRates();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function App() {
 
         <main className="flex-1 overflow-y-auto">
           <ModeToggle mode={mode} onChange={setMode} />
-          <Calculator country={country} mode={mode} settings={settings} />
+          <OrderCalculator country={country} mode={mode} settings={settings} />
         </main>
 
         <footer className="px-4 py-3 text-center">
@@ -64,6 +64,7 @@ export default function App() {
           onSetExchangeRate={setExchangeRate}
           onSetFeeRate={setFeeRate}
           onSetVatRate={setVatRate}
+          onSetCostRate={setCostRate}
           onReset={reset}
         />
       )}

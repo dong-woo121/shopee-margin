@@ -11,31 +11,20 @@ export interface CountryConfig {
   defaultFeeRate: number;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  refPrice: number;
+}
+
+export interface OrderItem {
+  productId: string;
+  salePrice: string;
+}
+
 export interface Settings {
   exchangeRates: Record<CountryCode, number>;
   feeRates: Record<CountryCode, number>;
   vatRate: number;
-}
-
-export interface CalcInputs {
-  salePrice: string;
-  refPrice: string;
-  costRate: string;
-  vatRate: string;
-  feeRate: string;
-  settlementLocal: string;
-}
-
-export interface CalcResult {
-  salePriceKRW: number;
-  costPrice: number;
-  vatRefund: number;
-  totalCost: number;
-  feeAmount: number;
-  predictedSettlement: number;
-  predictedMargin: number;
-  predictedMarginRate: number;
-  actualSettlementKRW: number;
-  actualMargin: number;
-  actualMarginRate: number;
+  costRate: number;
 }

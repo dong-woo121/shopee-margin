@@ -9,11 +9,12 @@ interface Props {
   onSetExchangeRate: (code: CountryCode, rate: number) => void;
   onSetFeeRate: (code: CountryCode, rate: number) => void;
   onSetVatRate: (rate: number) => void;
+  onSetCostRate: (rate: number) => void;
   onReset: () => void;
 }
 
 export default function SettingsModal({
-  settings, onClose, onSetExchangeRate, onSetFeeRate, onSetVatRate, onReset,
+  settings, onClose, onSetExchangeRate, onSetFeeRate, onSetVatRate, onSetCostRate, onReset,
 }: Props) {
   const { loading, error, fetchRates } = useExchangeRates();
   const [localRates, setLocalRates] = useState<Record<CountryCode, string>>(
@@ -23,6 +24,7 @@ export default function SettingsModal({
     Object.fromEntries(COUNTRIES.map(c => [c.code, String(settings.feeRates[c.code])])) as Record<CountryCode, string>
   );
   const [localVat, setLocalVat] = useState(String(settings.vatRate));
+  const [localCost, setLocalCost] = useState(String(settings.costRate));
 
   const handleSave = () => {
     COUNTRIES.forEach(c => {
@@ -33,6 +35,8 @@ export default function SettingsModal({
     });
     const v = parseFloat(localVat);
     if (!isNaN(v) && v >= 0) onSetVatRate(v);
+    const cost = parseFloat(localCost);
+    if (!isNaN(cost) && cost > 0) onSetCostRate(cost);
     onClose();
   };
 
@@ -59,6 +63,22 @@ export default function SettingsModal({
         </div>
 
         <div className="px-4 pb-6 space-y-5 pt-4">
+          {/* 매입률 */}
+          <section>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">매입률 (%)</h3>
+            <p className="text-xs text-gray-400 mb-2">전 제품 동일 적용</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={localCost}
+                onChange={e => setLocalCost(e.target.value)}
+                className="flex-1 text-right text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-400"
+              />
+              <span className="text-xs text-gray-400">%</span>
+            </div>
+          </section>
+
           {/* 환율 */}
           <section>
             <div className="flex items-center justify-between mb-2">
@@ -106,9 +126,9 @@ export default function SettingsModal({
             ))}
           </section>
 
-          {/* 부가세 환급률 기본값 */}
+          {/* 부가세 환급률 */}
           <section>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">부가세 환급률 기본값 (%)</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">부가세 환급률 (%)</h3>
             <div className="flex items-center gap-2">
               <input
                 type="text"
