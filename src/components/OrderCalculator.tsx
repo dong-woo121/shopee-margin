@@ -55,6 +55,8 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
 
   const hasFilledItems = items.some(item => p(item.salePrice) > 0);
   const showResult = hasFilledItems && (mode === 'predict' || p(settlementLocal) > 0);
+  const marginNoVat = mode === 'predict' ? result.predictedMarginNoVat : result.actualMarginNoVat;
+  const marginNoVatRate = mode === 'predict' ? result.predictedMarginNoVatRate : result.actualMarginNoVatRate;
   const margin = mode === 'predict' ? result.predictedMargin : result.actualMargin;
   const marginRate = mode === 'predict' ? result.predictedMarginRate : result.actualMarginRate;
   const isPositive = margin >= 0;
@@ -140,24 +142,29 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
                   <Row label="예상 정산금액" value={krw(result.predictedSettlement)} />
                 </>
               )}
-              {mode === 'settle' && (
-                <Row label="실제 정산금액" value={krw(result.actualSettlementKRW)} />
-              )}
             </div>
-            <div className={`px-4 py-4 ${isPositive ? 'bg-green-50' : 'bg-red-50'}`}>
-              <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-gray-700">
-                  {mode === 'predict' ? '예상 순마진' : '실제 순마진'}
-                </span>
-                <span className={`text-xl font-bold ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
-                  {krw(margin)}
+            {/* 마진 비교: 부가세 제외 vs 포함 */}
+            <div className="grid grid-cols-2 divide-x divide-gray-100">
+              <div className="px-4 py-3 bg-gray-50">
+                <p className="text-xs text-gray-400 mb-1">부가세 제외</p>
+                <p className={`text-lg font-bold ${marginNoVat >= 0 ? 'text-gray-700' : 'text-red-400'}`}>
+                  {krw(marginNoVat)}
+                </p>
+                <span className={`inline-block text-xs font-medium px-1.5 py-0.5 rounded-full mt-1 ${
+                  marginNoVat >= 0 ? 'bg-gray-200 text-gray-600' : 'bg-red-100 text-red-500'
+                }`}>
+                  {pct(marginNoVatRate)}
                 </span>
               </div>
-              <div className="flex justify-end mt-1">
-                <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+              <div className={`px-4 py-3 ${isPositive ? 'bg-green-50' : 'bg-red-50'}`}>
+                <p className="text-xs text-gray-400 mb-1">부가세 환급 후</p>
+                <p className={`text-lg font-bold ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
+                  {krw(margin)}
+                </p>
+                <span className={`inline-block text-xs font-medium px-1.5 py-0.5 rounded-full mt-1 ${
                   isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                 }`}>
-                  마진율 {pct(marginRate)}
+                  {pct(marginRate)}
                 </span>
               </div>
             </div>
