@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { CountryCode, CalcMode } from './types';
 import { useSettings } from './hooks/useSettings';
 import { useExchangeRates } from './hooks/useExchangeRates';
+import { useTheme } from './hooks/useTheme';
 import CountryTabs from './components/CountryTabs';
 import ModeToggle from './components/ModeToggle';
 import OrderCalculator from './components/OrderCalculator';
@@ -13,6 +14,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const { settings, setExchangeRate, setFeeRate, setVatRate, setCostRate, reset } = useSettings();
   const { fetchRates } = useExchangeRates();
+  const { isDark, toggle: toggleTheme } = useTheme();
 
   useEffect(() => {
     fetchRates().then(rates => {
@@ -25,20 +27,28 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-lg mx-auto min-h-screen flex flex-col bg-gray-50">
-        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="max-w-lg mx-auto min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+        <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
           <div className="flex items-center justify-between px-4 py-3">
             <div>
-              <h1 className="text-base font-bold text-gray-900">쇼피 마진 계산기</h1>
-              <p className="text-xs text-gray-400">Shopee Cross-border</p>
+              <h1 className="text-base font-bold text-gray-900 dark:text-gray-100">쇼피 마진 계산기</h1>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Shopee Cross-border</p>
             </div>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
-            >
-              ⚙️
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors text-base"
+              >
+                {isDark ? '☀️' : '🌙'}
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+              >
+                ⚙️
+              </button>
+            </div>
           </div>
           <CountryTabs selected={country} onChange={setCountry} />
         </header>
@@ -49,7 +59,7 @@ export default function App() {
         </main>
 
         <footer className="px-4 py-3 text-center">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-600">
             {mode === 'predict'
               ? '판매 전 예상 마진을 계산합니다'
               : '실제 정산금액 기준으로 마진을 확인합니다'}
