@@ -3,6 +3,7 @@ import type { Product } from '../types';
 interface OrderCalcItem {
   product: Product;
   salePrice: number;
+  qty: number;
 }
 
 interface OrderCalcParams {
@@ -34,10 +35,10 @@ export function calculateOrder(p: OrderCalcParams): OrderCalcResult {
   let totalVatRefund = 0;
 
   for (const item of p.items) {
-    totalSalePriceKRW += item.salePrice * p.exchangeRate;
-    const costPrice = item.product.refPrice * (p.costRate / 100);
-    totalCostPrice += costPrice;
-    totalVatRefund += costPrice * (p.vatRate / 100);
+    const unitCost = item.product.refPrice * (p.costRate / 100);
+    totalSalePriceKRW += item.salePrice * p.exchangeRate * item.qty;
+    totalCostPrice += unitCost * item.qty;
+    totalVatRefund += unitCost * item.qty * (p.vatRate / 100);
   }
 
   const totalEffectiveCost = totalCostPrice - totalVatRefund;

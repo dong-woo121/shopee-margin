@@ -20,6 +20,7 @@ export interface Product {
 export interface OrderItem {
   productId: string;
   salePrice: string;
+  qty: number;
 }
 
 export interface Settings {

@@ -33,10 +33,30 @@ export function useOrderItems(country: CountryCode) {
   }, [state, key]);
 
   const addItem = (productId: string) =>
-    setState(s => ({ ...s, items: [...s.items, { productId, salePrice: '' }] }));
+    setState(s => {
+      const idx = s.items.findIndex(item => item.productId === productId);
+      if (idx >= 0) {
+        return {
+          ...s,
+          items: s.items.map((item, i) => i === idx ? { ...item, qty: item.qty + 1 } : item),
+        };
+      }
+      return { ...s, items: [...s.items, { productId, salePrice: '', qty: 1 }] };
+    });
 
   const removeItem = (index: number) =>
     setState(s => ({ ...s, items: s.items.filter((_, i) => i !== index) }));
+
+  const updateQty = (index: number, qty: number) => {
+    if (qty <= 0) {
+      setState(s => ({ ...s, items: s.items.filter((_, i) => i !== index) }));
+      return;
+    }
+    setState(s => ({
+      ...s,
+      items: s.items.map((item, i) => i === index ? { ...item, qty } : item),
+    }));
+  };
 
   const updateSalePrice = (index: number, price: string) =>
     setState(s => ({
@@ -49,5 +69,5 @@ export function useOrderItems(country: CountryCode) {
 
   const clearOrder = () => setState(DEFAULT_STATE);
 
-  return { items: state.items, settlementLocal: state.settlementLocal, addItem, removeItem, updateSalePrice, setSettlementLocal, clearOrder };
+  return { items: state.items, settlementLocal: state.settlementLocal, addItem, removeItem, updateQty, updateSalePrice, setSettlementLocal, clearOrder };
 }
