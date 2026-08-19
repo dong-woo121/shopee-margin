@@ -47,7 +47,7 @@ export const ATOMY_PRODUCTS: Product[] = [
   { id: 'at_alaska_omega3',    brand: '애터미', name: '알레스카오메가3',           purchasePrice: 14900, splitCount: 1 },
   { id: 'at_lactic_acid',      brand: '애터미', name: '유산균',                    purchasePrice: 35000, splitCount: 1 },
   { id: 'at_aqua_cream',       brand: '애터미', name: '아쿠아수분크림',             purchasePrice: 9800,  splitCount: 1 },
-  { id: 'at_toothpaste_4set',  brand: '애터미', name: '치약',                     purchasePrice: 53200, splitCount: 4 },
+  { id: 'at_toothpaste_4set',  brand: '애터미', name: '치약',                     purchasePrice: 53200, splitCount: 20 },
   { id: 'at_toothpaste_50g',   brand: '애터미', name: '치약 50g',                 purchasePrice: 3700,  splitCount: 1 },
   { id: 'at_eanm_toothpaste',  brand: '애터미', name: '이앤몸치약',                purchasePrice: 7300,  splitCount: 1 },
   { id: 'at_scalp_shampoo',    brand: '애터미', name: '스칼프샴푸',                purchasePrice: 8000,  splitCount: 1 },
