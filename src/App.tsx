@@ -3,18 +3,22 @@ import type { CountryCode, CalcMode } from './types';
 import { useSettings } from './hooks/useSettings';
 import { useExchangeRates } from './hooks/useExchangeRates';
 import { useTheme } from './hooks/useTheme';
+import { useProducts } from './hooks/useProducts';
 import CountryTabs from './components/CountryTabs';
 import ModeToggle from './components/ModeToggle';
 import OrderCalculator from './components/OrderCalculator';
 import SettingsModal from './components/SettingsModal';
+import ProductManageModal from './components/ProductManageModal';
 
 export default function App() {
   const [country, setCountry] = useState<CountryCode>('SG');
   const [mode, setMode] = useState<CalcMode>('predict');
   const [showSettings, setShowSettings] = useState(false);
+  const [showProductManage, setShowProductManage] = useState(false);
   const { settings, setExchangeRate, setFeeRate, setVatRate, setCostRate, reset } = useSettings();
   const { fetchRates } = useExchangeRates();
   const { isDark, toggle: toggleTheme } = useTheme();
+  const { products, productMap, addProduct, updateProduct, deleteProduct } = useProducts();
 
   useEffect(() => {
     fetchRates().then(rates => {
@@ -55,7 +59,13 @@ export default function App() {
 
         <main className="flex-1 overflow-y-auto">
           <ModeToggle mode={mode} onChange={setMode} />
-          <OrderCalculator country={country} mode={mode} settings={settings} />
+          <OrderCalculator
+            country={country}
+            mode={mode}
+            settings={settings}
+            products={products}
+            productMap={productMap}
+          />
         </main>
 
         <footer className="px-4 py-3 text-center">
@@ -76,6 +86,17 @@ export default function App() {
           onSetVatRate={setVatRate}
           onSetCostRate={setCostRate}
           onReset={reset}
+          onManageProducts={() => setShowProductManage(true)}
+        />
+      )}
+
+      {showProductManage && (
+        <ProductManageModal
+          products={products}
+          onClose={() => setShowProductManage(false)}
+          onAdd={addProduct}
+          onUpdate={updateProduct}
+          onDelete={deleteProduct}
         />
       )}
     </div>

@@ -1,11 +1,11 @@
-import type { OrderItem } from '../types';
-import { PRODUCT_MAP } from '../constants';
+import type { OrderItem, Product } from '../types';
 import { krw } from '../utils/format';
 
 interface Props {
   items: OrderItem[];
   exchangeRate: number;
   currency: string;
+  productMap: Record<string, Product>;
   onUpdatePrice: (index: number, price: string) => void;
   onUpdateQty: (index: number, qty: number) => void;
   onRemove: (index: number) => void;
@@ -13,7 +13,7 @@ interface Props {
 
 const p = (s: string) => parseFloat(s.replace(/,/g, '')) || 0;
 
-export default function OrderList({ items, exchangeRate, currency, onUpdatePrice, onUpdateQty, onRemove }: Props) {
+export default function OrderList({ items, exchangeRate, currency, productMap, onUpdatePrice, onUpdateQty, onRemove }: Props) {
   if (items.length === 0) return null;
 
   return (
@@ -23,13 +23,22 @@ export default function OrderList({ items, exchangeRate, currency, onUpdatePrice
         <span className="text-xs text-gray-400 dark:text-gray-500">총 {items.reduce((sum, i) => sum + i.qty, 0)}개</span>
       </div>
       {items.map((item, index) => {
-        const product = PRODUCT_MAP[item.productId];
+        const product = productMap[item.productId];
+        if (!product) return null;
         const lineKRW = p(item.salePrice) * exchangeRate * item.qty;
+        const brandTag = product.brand === '애터미'
+          ? <span className="text-[10px] text-blue-400 dark:text-blue-500 mr-1">AT</span>
+          : <span className="text-[10px] text-orange-400 dark:text-orange-500 mr-1">IS</span>;
 
         return (
           <div key={index} className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-800 last:border-0">
             <div className="flex items-center gap-2">
-              <p className="text-xs font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">{product.name}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
+                  {brandTag}{product.name}
+                </p>
+              </div>
+              {/* 수량 +/- */}
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => onUpdateQty(index, item.qty - 1)}
@@ -45,6 +54,7 @@ export default function OrderList({ items, exchangeRate, currency, onUpdatePrice
                   +
                 </button>
               </div>
+              {/* 판매가 입력 */}
               <input
                 type="text"
                 inputMode="decimal"

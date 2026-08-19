@@ -1,5 +1,6 @@
 export type CountryCode = 'SG' | 'TW' | 'TH' | 'MY';
 export type CalcMode = 'predict' | 'settle';
+export type Brand = '인셀덤' | '애터미';
 
 export interface CountryConfig {
   code: CountryCode;
@@ -13,8 +14,11 @@ export interface CountryConfig {
 
 export interface Product {
   id: string;
+  brand: Brand;
   name: string;
-  refPrice: number;
+  refPrice?: number;       // 인셀덤: 정가 (원가 = 정가 × 전체매입률%)
+  purchasePrice?: number;  // 애터미: 당사공급가
+  splitCount?: number;     // 분할수 기본 1
 }
 
 export interface OrderItem {

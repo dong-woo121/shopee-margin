@@ -11,12 +11,13 @@ interface Props {
   onSetVatRate: (rate: number) => void;
   onSetCostRate: (rate: number) => void;
   onReset: () => void;
+  onManageProducts: () => void;
 }
 
 const inputCls = 'flex-1 text-right text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 focus:outline-none focus:border-orange-400 text-gray-800 dark:text-gray-200';
 
 export default function SettingsModal({
-  settings, onClose, onSetExchangeRate, onSetFeeRate, onSetVatRate, onSetCostRate, onReset,
+  settings, onClose, onSetExchangeRate, onSetFeeRate, onSetVatRate, onSetCostRate, onReset, onManageProducts,
 }: Props) {
   const { loading, error, fetchRates } = useExchangeRates();
   const [localRates, setLocalRates] = useState<Record<CountryCode, string>>(
@@ -127,6 +128,14 @@ export default function SettingsModal({
               저장
             </button>
           </div>
+
+          {/* 제품 관리 링크 */}
+          <button
+            onClick={() => { onClose(); onManageProducts(); }}
+            className="w-full py-2.5 text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center justify-center gap-1"
+          >
+            📦 제품 관리 (추가·편집·삭제)
+          </button>
         </div>
       </div>
     </div>

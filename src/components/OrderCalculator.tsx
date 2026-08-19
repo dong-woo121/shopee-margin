@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { CountryCode, CalcMode, Settings } from '../types';
-import { COUNTRY_MAP, PRODUCTS, PRODUCT_MAP } from '../constants';
+import type { CountryCode, CalcMode, Settings, Product, Brand } from '../types';
+import { COUNTRY_MAP } from '../constants';
 import { useOrderItems } from '../hooks/useOrderItems';
 import { calculateOrder } from '../utils/calcOrder';
 import { krw, pct } from '../utils/format';
@@ -10,9 +10,19 @@ interface Props {
   country: CountryCode;
   mode: CalcMode;
   settings: Settings;
+  products: Product[];
+  productMap: Record<string, Product>;
 }
 
 const p = (s: string) => parseFloat(s.replace(/,/g, '')) || 0;
+
+function unitCostLabel(product: Product, costRate: number): string {
+  if (product.brand === '인셀덤') {
+    return `${Math.round((product.refPrice ?? 0) * costRate / 100).toLocaleString()}원`;
+  }
+  const cost = Math.round((product.purchasePrice ?? 0) / (product.splitCount || 1));
+  return `${cost.toLocaleString()}원${(product.splitCount ?? 1) > 1 ? ` (÷${product.splitCount})` : ''}`;
+}
 
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
@@ -23,12 +33,13 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
   );
 }
 
-export default function OrderCalculator({ country, mode, settings }: Props) {
+export default function OrderCalculator({ country, mode, settings, products, productMap }: Props) {
   const config = COUNTRY_MAP[country];
   const exchangeRate = settings.exchangeRates[country];
   const feeRate = settings.feeRates[country];
   const { items, settlementLocal, addItem, removeItem, updateQty, updateSalePrice, setSettlementLocal, clearOrder } = useOrderItems(country);
   const [showSheet, setShowSheet] = useState(false);
+  const [sheetBrand, setSheetBrand] = useState<Brand>('인셀덤');
 
   const qtyMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -37,11 +48,13 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
   }, [items]);
 
   const result = useMemo(() => {
-    const calcItems = items.map(item => ({
-      product: PRODUCT_MAP[item.productId],
-      salePrice: p(item.salePrice),
-      qty: item.qty,
-    }));
+    const calcItems = items
+      .filter(item => productMap[item.productId])
+      .map(item => ({
+        product: productMap[item.productId],
+        salePrice: p(item.salePrice),
+        qty: item.qty,
+      }));
     return calculateOrder({
       items: calcItems,
       exchangeRate,
@@ -50,7 +63,7 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
       feeRate,
       settlementLocal: p(settlementLocal),
     });
-  }, [items, settlementLocal, exchangeRate, feeRate, settings.costRate, settings.vatRate]);
+  }, [items, settlementLocal, exchangeRate, feeRate, settings.costRate, settings.vatRate, productMap]);
 
   const hasFilledItems = items.some(item => p(item.salePrice) > 0);
   const showResult = hasFilledItems && (mode === 'predict' || p(settlementLocal) > 0);
@@ -60,6 +73,8 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
   const marginRate = mode === 'predict' ? result.predictedMarginRate : result.actualMarginRate;
   const isPositive = margin >= 0;
   const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
+
+  const sheetProducts = products.filter(pr => pr.brand === sheetBrand);
 
   return (
     <>
@@ -85,6 +100,7 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
           items={items}
           exchangeRate={exchangeRate}
           currency={config.currency}
+          productMap={productMap}
           onUpdatePrice={updateSalePrice}
           onUpdateQty={updateQty}
           onRemove={removeItem}
@@ -142,7 +158,6 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
                 </>
               )}
             </div>
-            {/* 마진 비교: 부가세 제외 vs 환급 후 */}
             <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-800">
               <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
                 <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">부가세 제외</p>
@@ -189,23 +204,44 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
           <div className="flex-1 bg-black/50" />
           <div
             className="bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-            style={{ maxHeight: '70vh' }}
+            style={{ maxHeight: '72vh' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
-              <div>
-                <span className="text-sm font-bold text-gray-800 dark:text-gray-200">제품 선택</span>
-                {totalQty > 0 && (
-                  <span className="ml-2 text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 font-semibold px-1.5 py-0.5 rounded-full">
-                    {totalQty}개 선택됨
-                  </span>
-                )}
+            {/* 시트 헤더 */}
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-gray-800 dark:text-gray-200">제품 선택</span>
+                  {totalQty > 0 && (
+                    <span className="text-xs bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 font-semibold px-1.5 py-0.5 rounded-full">
+                      {totalQty}개
+                    </span>
+                  )}
+                </div>
+                <button onClick={() => setShowSheet(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">✕</button>
               </div>
-              <button onClick={() => setShowSheet(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">✕</button>
+              {/* 브랜드 필터 */}
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                {(['인셀덤', '애터미'] as Brand[]).map(b => (
+                  <button
+                    key={b}
+                    onClick={() => setSheetBrand(b)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      sheetBrand === b
+                        ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(70vh - 52px)' }}>
+
+            {/* 제품 그리드 */}
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 100px)' }}>
               <div className="grid grid-cols-3 gap-2 p-3">
-                {PRODUCTS.map(product => {
+                {sheetProducts.map(product => {
                   const qty = qtyMap[product.id] || 0;
                   return (
                     <button
@@ -223,7 +259,7 @@ export default function OrderCalculator({ country, mode, settings }: Props) {
                         </span>
                       )}
                       <p className="text-xs font-medium text-gray-800 dark:text-gray-200 leading-tight pr-4 line-clamp-2">{product.name}</p>
-                      <p className="text-xs text-orange-500 dark:text-orange-400 mt-1">{product.refPrice.toLocaleString()}원</p>
+                      <p className="text-xs text-orange-500 dark:text-orange-400 mt-1">{unitCostLabel(product, settings.costRate)}</p>
                     </button>
                   );
                 })}
