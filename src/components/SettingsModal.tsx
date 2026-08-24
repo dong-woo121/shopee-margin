@@ -68,8 +68,8 @@ export default function SettingsModal({
         <div className="px-4 pb-6 space-y-5 pt-4">
           {/* 매입률 */}
           <section>
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">매입률 (%)</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">전 제품 동일 적용</p>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">인셀덤 매입률 (%)</h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">인셀덤 전용 · 정가 × 매입률 = 매입원가 (애터미는 제품별 공급가 사용, 영향 없음)</p>
             <div className="flex items-center gap-2">
               <input type="text" inputMode="decimal" value={localCost} onChange={e => setLocalCost(e.target.value)} className={inputCls} />
               <span className="text-xs text-gray-400 dark:text-gray-500">%</span>

@@ -4,11 +4,17 @@ import { DEFAULT_PRODUCTS } from '../constants';
 
 const KEY = 'shopee-products';
 
+function mergeWithDefaults(stored: Product[]): Product[] {
+  const storedIds = new Set(stored.map(p => p.id));
+  const missing = DEFAULT_PRODUCTS.filter(dp => !storedIds.has(dp.id));
+  return missing.length > 0 ? [...stored, ...missing] : stored;
+}
+
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) return JSON.parse(raw) as Product[];
+      if (raw) return mergeWithDefaults(JSON.parse(raw) as Product[]);
     } catch {}
     return DEFAULT_PRODUCTS;
   });

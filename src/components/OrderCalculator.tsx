@@ -84,7 +84,7 @@ export default function OrderCalculator({ country, mode, settings, products, pro
           <div className="flex-1 flex items-center justify-between bg-orange-50 dark:bg-orange-950/30 rounded-xl px-3 py-2">
             <span className="text-xs text-gray-500 dark:text-gray-400">1 {config.currency}</span>
             <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">{exchangeRate.toLocaleString()}원</span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">매입 {settings.costRate}%</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">인셀덤 매입 {settings.costRate}%</span>
           </div>
           <button
             onClick={() => setShowSheet(true)}
