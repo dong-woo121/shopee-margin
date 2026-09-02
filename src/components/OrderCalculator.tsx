@@ -24,6 +24,13 @@ function unitCostLabel(product: Product, costRate: number): string {
   return `${cost.toLocaleString()}원${(product.splitCount ?? 1) > 1 ? ` (÷${product.splitCount})` : ''}`;
 }
 
+function unitCost(product: Product, costRate: number): number {
+  if (product.brand === '인셀덤') {
+    return Math.round((product.refPrice ?? 0) * costRate / 100);
+  }
+  return Math.round((product.purchasePrice ?? 0) / (product.splitCount || 1));
+}
+
 function Row({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex justify-between items-baseline py-1.5">
@@ -40,6 +47,7 @@ export default function OrderCalculator({ country, mode, settings, products, pro
   const { items, settlementLocal, addItem, removeItem, updateQty, updateSalePrice, setSettlementLocal, clearOrder } = useOrderItems(country);
   const [showSheet, setShowSheet] = useState(false);
   const [sheetBrand, setSheetBrand] = useState<Brand>('인셀덤');
+  const [productQuery, setProductQuery] = useState('');
 
   const qtyMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -74,7 +82,22 @@ export default function OrderCalculator({ country, mode, settings, products, pro
   const isPositive = margin >= 0;
   const totalQty = items.reduce((sum, i) => sum + i.qty, 0);
 
-  const sheetProducts = products.filter(pr => pr.brand === sheetBrand);
+  const sheetProducts = useMemo(() => {
+    const query = productQuery.trim().toLocaleLowerCase().replace(/\s+/g, '');
+
+    return products
+      .filter(product => product.brand === sheetBrand)
+      .filter(product => !query || product.name.toLocaleLowerCase().replace(/\s+/g, '').includes(query))
+      .sort((a, b) => (
+        unitCost(a, settings.costRate) - unitCost(b, settings.costRate)
+        || a.name.localeCompare(b.name, 'ko')
+      ));
+  }, [products, productQuery, sheetBrand, settings.costRate]);
+
+  const closeSheet = () => {
+    setShowSheet(false);
+    setProductQuery('');
+  };
 
   return (
     <>
@@ -200,7 +223,7 @@ export default function OrderCalculator({ country, mode, settings, products, pro
 
       {/* 제품 선택 Bottom Sheet */}
       {showSheet && (
-        <div className="fixed inset-0 z-50 flex flex-col" onClick={() => setShowSheet(false)}>
+        <div className="fixed inset-0 z-50 flex flex-col" onClick={closeSheet}>
           <div className="flex-1 bg-black/50" />
           <div
             className="bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
@@ -218,14 +241,14 @@ export default function OrderCalculator({ country, mode, settings, products, pro
                     </span>
                   )}
                 </div>
-                <button onClick={() => setShowSheet(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">✕</button>
+                <button onClick={closeSheet} aria-label="제품 선택 닫기" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none">✕</button>
               </div>
               {/* 브랜드 필터 */}
               <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
                 {(['인셀덤', '애터미'] as Brand[]).map(b => (
                   <button
                     key={b}
-                    onClick={() => setSheetBrand(b)}
+                    onClick={() => { setSheetBrand(b); setProductQuery(''); }}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                       sheetBrand === b
                         ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm'
@@ -236,10 +259,50 @@ export default function OrderCalculator({ country, mode, settings, products, pro
                   </button>
                 ))}
               </div>
+              {/* 제품 검색 */}
+              <div className="relative mt-2.5">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+                <input
+                  type="text"
+                  value={productQuery}
+                  onChange={e => setProductQuery(e.target.value)}
+                  placeholder={`${sheetBrand} 제품 검색`}
+                  aria-label="제품명 검색"
+                  autoFocus
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-9 text-sm text-gray-800 placeholder:text-gray-400 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-orange-500 dark:focus:bg-gray-800 dark:focus:ring-orange-950"
+                />
+                {productQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setProductQuery('')}
+                    aria-label="검색어 지우기"
+                    className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-500 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className="mt-2 flex items-center justify-between px-0.5">
+                <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                  {productQuery.trim() ? `검색 결과 ${sheetProducts.length}개` : `제품 ${sheetProducts.length}개`}
+                </span>
+                <span className="text-[11px] font-medium text-orange-500 dark:text-orange-400">낮은 가격순</span>
+              </div>
             </div>
 
             {/* 제품 그리드 */}
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 100px)' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 184px)' }}>
+              {sheetProducts.length > 0 ? (
               <div className="grid grid-cols-3 gap-2 p-3">
                 {sheetProducts.map(product => {
                   const qty = qtyMap[product.id] || 0;
@@ -264,6 +327,18 @@ export default function OrderCalculator({ country, mode, settings, products, pro
                   );
                 })}
               </div>
+              ) : (
+                <div className="px-6 py-12 text-center">
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="m20 20-3.5-3.5" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">검색 결과가 없어요</p>
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">다른 제품명으로 검색해 보세요</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
